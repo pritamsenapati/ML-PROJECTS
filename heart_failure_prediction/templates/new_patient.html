@@ -1,0 +1,120 @@
+{% extends "layout.html" %}
+
+{% block title %}New Patient - CardioPredict{% endblock %}
+
+{% block head %}
+<style>
+    .form-container {
+        max-width: 600px;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 32px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-cancel {
+        background: #e0e0e0;
+        color: #333;
+        padding: 12px 32px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-cancel:hover {
+        background: #d0d0d0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1 style="color: #2c3e50; margin-bottom: 30px;">➕ Add New Patient</h1>
+    
+    <div class="form-container">
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Patient Name *</label>
+                <input type="text" id="name" name="name" required placeholder="Enter patient name">
+            </div>
+            
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" min="1" max="150" placeholder="Enter age">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter email address">
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" name="phone" placeholder="Enter phone number">
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">✓ Create Patient</button>
+                <a href="/patients" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

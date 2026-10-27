@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - CardioPredict{% endblock %}
+
+{% block head %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 5px solid #667eea;
+    }
+    
+    .stat-card.high-risk {
+        border-left-color: #e74c3c;
+    }
+    
+    .stat-card.moderate-risk {
+        border-left-color: #f39c12;
+    }
+    
+    .stat-card.low-risk {
+        border-left-color: #27ae60;
+    }
+    
+    .stat-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .stat-card .value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .recent-section {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .recent-section h2 {
+        margin-top: 0;
+        color: #2c3e50;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 15px;
+    }
+    
+    .assessment-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .assessment-item:last-child {
+        border-bottom: none;
+    }
+    
+    .assessment-info h4 {
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+    }
+    
+    .assessment-meta {
+        font-size: 12px;
+        color: #999;
+    }
+    
+    .assessment-result {
+        text-align: right;
+    }
+    
+    .risk-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+    
+    .risk-badge.high {
+        background: #fadbd8;
+        color: #c0392b;
+    }
+    
+    .risk-badge.moderate {
+        background: #fef5e7;
+        color: #d68910;
+    }
+    
+    .risk-badge.low {
+        background: #d5f4e6;
+        color: #27ae60;
+    }
+    
+    .probability {
+        font-size: 14px;
+        font-weight: 600;
+        color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1 style="color: #2c3e50; margin-bottom: 30px;">📊 Dashboard & Analytics</h1>
+    
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <h3>Total Patients</h3>
+            <div class="value">{{ stats.total_patients }}</div>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Total Assessments</h3>
+            <div class="value">{{ stats.total_assessments }}</div>
+        </div>
+        
+        <div class="stat-card high-risk">
+            <h3>🔴 High Risk</h3>
+            <div class="value">{{ stats.high_risk }}</div>
+        </div>
+        
+        <div class="stat-card moderate-risk">
+            <h3>🟡 Moderate Risk</h3>
+            <div class="value">{{ stats.moderate_risk }}</div>
+        </div>
+        
+        <div class="stat-card low-risk">
+            <h3>🟢 Low Risk</h3>
+            <div class="value">{{ stats.low_risk }}</div>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Average Risk Probability</h3>
+            <div class="value">{{ stats.avg_risk_probability }}%</div>
+        </div>
+    </div>
+    
+    <div class="recent-section">
+        <h2>Recent Assessments</h2>
+        
+        {% if stats.recent_assessments %}
+            {% for assessment in stats.recent_assessments %}
+            <div class="assessment-item">
+                <div class="assessment-info">
+                    <h4>{{ assessment.patient.name }}</h4>
+                    <div class="assessment-meta">
+                        Assessed on {{ assessment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+                <div class="assessment-result">
+                    <span class="risk-badge {% if 'High' in assessment.risk_level %}high{% elif 'Moderate' in assessment.risk_level %}moderate{% else %}low{% endif %}">
+                        {{ assessment.risk_level }}
+                    </span>
+                    <div class="probability">{{ (assessment.death_probability * 100)|round(2) }}% Risk</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; color: #999; padding: 20px;">No assessments yet. Start by <a href="/patient/new">adding a patient</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

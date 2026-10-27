@@ -1,0 +1,272 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ patient.name }} - CardioPredict{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<style>
+    .patient-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+    
+    .patient-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .info-item {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 8px;
+    }
+    
+    .info-label {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-bottom: 5px;
+    }
+    
+    .info-value {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .assessment-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-container {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .assessments-list {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .assessments-list h2 {
+        margin-top: 0;
+        color: #2c3e50;
+    }
+    
+    .assessment-record {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        gap: 15px;
+    }
+    
+    .assessment-record:last-child {
+        border-bottom: none;
+    }
+    
+    .assessment-record:hover {
+        background: #f8f9fa;
+    }
+    
+    .assessment-date {
+        font-weight: 600;
+        color: #2c3e50;
+        min-width: 150px;
+    }
+    
+    .assessment-meta {
+        flex: 1;
+    }
+    
+    .assessment-probability {
+        font-size: 12px;
+        color: #999;
+    }
+    
+    .risk-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    
+    .risk-badge.high {
+        background: #fadbd8;
+        color: #c0392b;
+    }
+    
+    .risk-badge.moderate {
+        background: #fef5e7;
+        color: #d68910;
+    }
+    
+    .risk-badge.low {
+        background: #d5f4e6;
+        color: #27ae60;
+    }
+    
+    .assessment-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-small {
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid #667eea;
+        color: #667eea;
+        text-decoration: none;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-small:hover {
+        background: #667eea;
+        color: white;
+    }
+    
+    .new-assessment-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+    
+    .new-assessment-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .empty-message {
+        text-align: center;
+        padding: 30px;
+        color: #999;
+    }
+    
+    @media (max-width: 1024px) {
+        .assessment-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="patient-header">
+        <h1 style="margin: 0 0 20px 0;">{{ patient.name }}</h1>
+        <div class="patient-info">
+            <div class="info-item">
+                <div class="info-label">Patient ID</div>
+                <div class="info-value">#{{ patient.id }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Age</div>
+                <div class="info-value">{{ patient.age or 'Not Set' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Total Assessments</div>
+                <div class="info-value">{{ patient.assessments|length }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Member Since</div>
+                <div class="info-value">{{ patient.created_at.strftime('%Y-%m-%d') }}</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if patient.assessments %}
+    <div class="assessment-grid">
+        <div class="chart-container">
+            <h3 style="margin-top: 0; color: #2c3e50;">Risk Probability Trend</h3>
+            <canvas id="riskChart"></canvas>
+        </div>
+        
+        <div class="assessments-list">
+            <h3 style="margin-top: 0; color: #2c3e50;">Assessment History</h3>
+            
+            {% for assessment in patient.assessments %}
+            <div class="assessment-record">
+                <div>
+                    <div class="assessment-date">{{ assessment.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                    <div class="assessment-probability">Risk: {{ (assessment.death_probability * 100)|round(2) }}%</div>
+                </div>
+                <span class="risk-badge {% if 'High' in assessment.risk_level %}high{% elif 'Moderate' in assessment.risk_level %}moderate{% else %}low{% endif %}">
+                    {{ assessment.risk_level }}
+                </span>
+                <div class="assessment-actions">
+                    <a href="/export/{{ assessment.id }}" class="btn-small" download>📥 Report</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        // Fetch risk history data
+        fetch('/api/patient/{{ patient.id }}/risk-history')
+            .then(r => r.json())
+            .then(data => {
+                const ctx = document.getElementById('riskChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.dates,
+                        datasets: [{
+                            label: 'Death Probability (%)',
+                            data: data.probabilities,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {display: true}
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {callback: function(value) {return value + '%';}}
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+    {% else %}
+    <div class="assessments-list">
+        <div class="empty-message">
+            <p style="font-size: 18px; margin-bottom: 20px;">No assessments yet for this patient</p>
+            <p><a href="/" style="color: #667eea;">Go to Assessment page to start evaluating</a></p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

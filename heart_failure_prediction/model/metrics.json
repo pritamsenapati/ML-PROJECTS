@@ -1,0 +1,8 @@
+{
+  "best": "RandomForest",
+  "scores": {
+    "LogisticRegression": 0.8166666666666667,
+    "RandomForest": 0.8333333333333334,
+    "GradientBoosting": 0.8
+  }
+}

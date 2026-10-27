@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}Assessment - CardioPredict{% endblock %}
+
+{% block head %}
+<style>
+    .assessment-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="assessment-wrapper">
+    <div class="card">
+        <div class="card-header">
+            <h2>Patient Risk Assessment</h2>
+            <p>Enter patient clinical parameters for real-time risk prediction</p>
+        </div>
+        
+        <form id="predict-form" class="assessment-form">
+            <div class="form-grid" id="fields"></div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-predict">Analyze Risk</button>
+                <button type="reset" class="btn-reset">Clear Form</button>
+            </div>
+        </form>
+        
+        <div id="result" class="result-container"></div>
+    </div>
+</div>
+{% endblock %}

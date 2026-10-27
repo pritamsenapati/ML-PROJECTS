@@ -1,0 +1,238 @@
+{% extends "layout.html" %}
+
+{% block title %}Patients - CardioPredict{% endblock %}
+
+{% block head %}
+<style>
+    .patients-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .search-box {
+        flex: 1;
+        min-width: 250px;
+    }
+    
+    .search-box input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    .search-box input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .btn-new {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-new:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .patients-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .patients-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .patients-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .patients-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .patients-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .patient-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .patient-email {
+        font-size: 12px;
+        color: #999;
+    }
+    
+    .assessment-count {
+        background: #e8eef7;
+        color: #667eea;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .action-links {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-links a {
+        color: #667eea;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 10px;
+        border-radius: 4px;
+        border: 1px solid #667eea;
+        transition: all 0.3s;
+    }
+    
+    .action-links a:hover {
+        background: #667eea;
+        color: white;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        color: #667eea;
+        text-decoration: none;
+    }
+    
+    .pagination a:hover {
+        background: #667eea;
+        color: white;
+    }
+    
+    .pagination .current {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .empty-message {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="patients-header">
+        <h1 style="color: #2c3e50; margin: 0;">👥 Patients</h1>
+        <a href="/patient/new" class="btn-new">+ Add New Patient</a>
+    </div>
+    
+    <form method="GET" style="margin-bottom: 20px;">
+        <div class="search-box">
+            <input type="text" name="search" placeholder="Search patients by name..." value="{{ search }}">
+        </div>
+    </form>
+    
+    {% if patients.items %}
+    <table class="patients-table">
+        <thead>
+            <tr>
+                <th>Patient Name</th>
+                <th>Age</th>
+                <th>Contact</th>
+                <th>Assessments</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients.items %}
+            <tr>
+                <td>
+                    <div class="patient-name">{{ patient.name }}</div>
+                    <div class="patient-email">ID: #{{ patient.id }}</div>
+                </td>
+                <td>{{ patient.age or 'N/A' }}</td>
+                <td>
+                    {% if patient.email %}
+                    <div style="font-size: 12px;">{{ patient.email }}</div>
+                    {% endif %}
+                    {% if patient.phone %}
+                    <div style="font-size: 12px;">{{ patient.phone }}</div>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="assessment-count">{{ patient.assessments|length }} assessments</span>
+                </td>
+                <td>
+                    <div class="action-links">
+                        <a href="/patient/{{ patient.id }}">View</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if patients.pages > 1 %}
+    <div class="pagination">
+        {% if patients.has_prev %}
+        <a href="?page=1&search={{ search }}">«</a>
+        <a href="?page={{ patients.prev_num }}&search={{ search }}">‹</a>
+        {% endif %}
+        
+        {% for page_num in patients.iter_pages() %}
+            {% if page_num %}
+                {% if page_num == patients.page %}
+                <span class="current">{{ page_num }}</span>
+                {% else %}
+                <a href="?page={{ page_num }}&search={{ search }}">{{ page_num }}</a>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if patients.has_next %}
+        <a href="?page={{ patients.next_num }}&search={{ search }}">›</a>
+        <a href="?page={{ patients.pages }}&search={{ search }}">»</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="empty-message">
+        <p style="font-size: 18px; margin-bottom: 10px;">No patients found</p>
+        <p><a href="/patient/new">Create the first patient</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
